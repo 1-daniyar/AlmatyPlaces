@@ -1,57 +1,41 @@
 package com.example.almatyplaces.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+private val LightColors = lightColorScheme(
+    primary = Color(0xFF1B6B4A), onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFA6F2C9), onPrimaryContainer = Color(0xFF002114),
+    secondary = Color(0xFF4D6357), onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFCFE9D9), onSecondaryContainer = Color(0xFF0A1F16),
+    background = Color(0xFFF5FBF6), onBackground = Color(0xFF171D1A),
+    surface = Color(0xFFF5FBF6), onSurface = Color(0xFF171D1A),
+    surfaceVariant = Color(0xFFDBE5DD), onSurfaceVariant = Color(0xFF3F4943),
+    outline = Color(0xFF6F7973),
+    error = Color(0xFFBA1A1A), onError = Color(0xFFFFFFFF)
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val DarkColors = darkColorScheme(
+    primary = Color(0xFF8BD6AE), onPrimary = Color(0xFF003824),
+    primaryContainer = Color(0xFF005236), onPrimaryContainer = Color(0xFFA6F2C9),
+    secondary = Color(0xFFB3CCBD), onSecondary = Color(0xFF1F352A),
+    secondaryContainer = Color(0xFF354B40), onSecondaryContainer = Color(0xFFCFE9D9),
+    background = Color(0xFF0F1512), onBackground = Color(0xFFDEE4DF),
+    surface = Color(0xFF0F1512), onSurface = Color(0xFFDEE4DF),
+    surfaceVariant = Color(0xFF3F4943), onSurfaceVariant = Color(0xFFBFC9C1),
+    outline = Color(0xFF89938C),
+    error = Color(0xFFFFB4AB), onError = Color(0xFF690005)
 )
 
 @Composable
 fun AlmatyPlacesTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = if (darkTheme) DarkColors else LightColors,
         typography = Typography,
         content = content
     )
