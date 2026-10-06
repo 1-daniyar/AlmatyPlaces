@@ -1,5 +1,6 @@
 package com.example.almatyplaces.ui.screens
 
+import com.example.almatyplaces.ui.components.PlaceTopBar
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,8 +35,8 @@ fun ListScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = { Text("Алматы: места") },
+            PlaceTopBar(
+                title = "Алматы: места",
                 actions = {
                     IconButton(onClick = onFavoritesClick) {
                         Icon(Icons.Default.Favorite, contentDescription = "Открыть избранное")
