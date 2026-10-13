@@ -28,4 +28,98 @@ Android-приложение на Jetpack Compose: каталог интерес
 - Многоточие для длинных названий, пустое состояние
 - Своя цветовая схема (светлая и тёмная), отступы в объекте `Spacing`
 - Компоненты: `ItemCard`, `CategoryChip`, `EmptyState`, `PlaceTopBar`
-- Состояние через `remember` + `mutableStateOf` (фильтр и избранное)
+- Архитектура MVVM (SIS 4): `PlacesViewModel`, `PlacesUiState`, `PlacesRepository`, stateless-экраны (см. раздел ниже)
+- Поиск по названию, фильтр по категории, избранное, состояния loading / content / empty / error
+
+## Архитектура (SIS 4)
+
+Схема-ресторан. События идут вверх к ViewModel, состояние идёт вниз к экрану.
+
+```
+ЗАЛ (View): официанты, только показывают
+  ListRoute -> ListScreen
+  FavoritesRoute -> FavoritesScreen
+  DetailRoute -> DetailScreen
+        |   ^
+ события|   | состояние (uiState)
+        v   |
+КУХНЯ (ViewModel): повар, переживает поворот
+  PlacesViewModel
+    _uiState (private MutableStateFlow)
+    uiState  (public StateFlow)
+        |   ^
+getPlaces()|  | List<Place> или ошибка
+        v   |
+ХОЛОДИЛЬНИК (Repository): хранит данные
+  PlacesRepository: delay(1500), shouldFail
+```
+
+```mermaid
+flowchart TD
+    subgraph View["ЗАЛ (View)"]
+        LR[ListRoute] --> LS[ListScreen]
+        FR[FavoritesRoute] --> FS[FavoritesScreen]
+        DR[DetailRoute] --> DS[DetailScreen]
+    end
+    VM["КУХНЯ: PlacesViewModel"]
+    R["ХОЛОДИЛЬНИК: PlacesRepository"]
+    View -- "события" --> VM
+    VM -- "uiState" --> View
+    VM -- "getPlaces()" --> R
+    R -- "List<Place> / ошибка" --> VM
+```
+
+Полный план (поля `PlacesUiState`, список событий) лежит в [`design/architecture.md`](design/architecture.md).
+
+### Файлы
+
+| Файл | Роль |
+|---|---|
+| `data/PlacesRepository.kt` | владеет списком мест, `getPlaces()` с `delay(1500)`, флаг `shouldFail` |
+| `ui/PlacesUiState.kt` | `data class` с `val`: `isLoading`, `error`, `categories`, `selectedCategory`, `searchQuery`, `favoriteIds`, `placesById`, `visiblePlaces`, `favoritePlaces` |
+| `ui/PlacesViewModel.kt` | `_uiState` / `uiState`, события, обновление через `copy()`, функция `withLists()` считает поиск и фильтр |
+| `ui/screens/ListScreen.kt` | `ListRoute` (`collectAsStateWithLifecycle()`) и stateless `ListScreen` |
+| `ui/screens/FavoritesScreen.kt` | `FavoritesRoute` и `FavoritesScreen` |
+| `ui/screens/DetailScreen.kt` | `DetailRoute` и `DetailScreen` |
+| `ui/AppNavigation.kt` | создаёт один `PlacesViewModel` и передаёт его в три Route |
+| `ui/preview/PreviewData.kt` | фальшивые `PlacesUiState` для превью |
+
+### Четыре состояния списка
+
+Экран `ListScreen` выбирает, что показать, по полям `uiState`: `isLoading` даёт крутилку, `error != null` даёт ошибку с кнопкой «Повторить», пустой `visiblePlaces` даёт «Ничего не найдено», иначе показывается список. Для каждого состояния есть `@Preview` (Loading, Content, Empty, Error).
+
+### Как проверить ошибку и пустой результат
+
+- **Error:** нажми иконку «жука» в верхней панели. Репозиторий включит `shouldFail`, и после загрузки появится ошибка. Кнопка «Повторить» вызывает `onRetry()`, выключает `shouldFail` и грузит данные заново.
+- **Empty:** выбери категорию «Бары» (там нет мест) или введи в поиск текст, которого нет.
+
+### Проследим один клик: сердечко на карточке
+
+1. Пользователь нажимает сердечко в `ItemCard` (`ItemCard.kt`), вызывается `onFavoriteClick`.
+2. В `ListScreen` это лямбда `{ onFavoriteClick(place.id) }`, а в `ListRoute` она связана с `viewModel::onFavoriteClick`.
+3. `PlacesViewModel.onFavoriteClick(id)` делает `_uiState.update { ... copy(favoriteIds = ...).withLists() }`: добавляет или убирает id и пересчитывает `favoritePlaces`.
+4. `StateFlow` `uiState` выдаёт новое значение, `collectAsStateWithLifecycle()` в `ListRoute` передаёт его в `ListScreen`, экран перерисовывается.
+5. Пользователь видит закрашенное сердечко, а на экране «Избранное» появилось это место.
+
+## Доказательство: Activity пересоздаётся, ViewModel нет
+
+В `MainActivity` в каждом методе жизненного цикла стоит `Log.d` (тег `LifecycleDemo`), в `PlacesViewModel` логи стоят в `init` и `onCleared`.
+
+Logcat после поворота экрана (фильтр `tag:LifecycleDemo`):
+
+<!-- ВАЖНО: замени блок ниже на свой настоящий вывод Logcat с эмулятора, потом удали этот комментарий -->
+```
+Activity onCreate (savedInstanceState = null, первый запуск)
+ViewModel init (создан)
+Activity onStart
+Activity onResume
+--- поворот экрана ---
+Activity onPause
+Activity onStop
+Activity onDestroy (isChangingConfigurations = true)
+Activity onCreate (savedInstanceState = не null, пересоздана)
+Activity onStart
+Activity onResume
+```
+
+Объяснение: при повороте экрана Android уничтожает Activity и создаёт новую, поэтому после `onDestroy` снова идёт `onCreate`. Но ViewModel хранится отдельно от Activity: система знает, что это поворот (`isChangingConfigurations = true`), и оставляет ViewModel в памяти. Поэтому в логе нет новых `ViewModel init` и `onCleared`, а новая Activity получает тот же `PlacesViewModel` с тем же состоянием. Именно поэтому текст поиска, выбранная категория и избранное не пропадают.
