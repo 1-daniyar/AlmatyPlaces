@@ -1,29 +1,30 @@
 package com.example.almatyplaces.ui
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.almatyplaces.ui.screens.DetailScreen
-import com.example.almatyplaces.ui.screens.FavoritesScreen
-import com.example.almatyplaces.ui.screens.ListScreen
+import com.example.almatyplaces.ui.screens.DetailRoute
+import com.example.almatyplaces.ui.screens.FavoritesRoute
+import com.example.almatyplaces.ui.screens.ListRoute
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    var favorites by remember { mutableStateOf(setOf<Int>()) }
-    val toggleFavorite: (Int) -> Unit = { id ->
-        favorites = if (id in favorites) favorites - id else favorites + id
-    }
+
+    // Один ViewModel на все экраны: избранное общее.
+    // Он создаётся здесь, вне NavHost, поэтому принадлежит Activity
+    // и переживает поворот экрана.
+    val viewModel: PlacesViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = "list") {
         composable("list") {
-            ListScreen(
-                favoriteIds = favorites,
+            ListRoute(
+                viewModel = viewModel,
                 onPlaceClick = { navController.navigate("detail/$it") },
-                onToggleFavorite = toggleFavorite,
                 onFavoritesClick = { navController.navigate("favorites") }
             )
         }
@@ -32,18 +33,16 @@ fun AppNavigation() {
             arguments = listOf(navArgument("placeId") { type = NavType.IntType })
         ) { entry ->
             val id = entry.arguments?.getInt("placeId") ?: -1
-            DetailScreen(
+            DetailRoute(
                 placeId = id,
-                isFavorite = id in favorites,
-                onToggleFavorite = { toggleFavorite(id) },
+                viewModel = viewModel,
                 onBack = { navController.popBackStack() }
             )
         }
         composable("favorites") {
-            FavoritesScreen(
-                favoriteIds = favorites,
+            FavoritesRoute(
+                viewModel = viewModel,
                 onPlaceClick = { navController.navigate("detail/$it") },
-                onToggleFavorite = toggleFavorite,
                 onBack = { navController.popBackStack() }
             )
         }

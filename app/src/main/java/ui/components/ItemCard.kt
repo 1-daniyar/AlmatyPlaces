@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.almatyplaces.data.Place
-import com.example.almatyplaces.data.places
+import com.example.almatyplaces.ui.preview.previewPlaces
 import com.example.almatyplaces.ui.theme.AlmatyPlacesTheme
 import com.example.almatyplaces.ui.theme.Spacing
 
@@ -74,11 +74,11 @@ fun ItemCard(
 @Preview(showBackground = true)
 @Composable
 private fun ItemCardPreview() {
-    AlmatyPlacesTheme { ItemCard(places[0], true, {}, {}) }
+    AlmatyPlacesTheme { ItemCard(previewPlaces[0], true, {}, {}) }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ItemCardDarkPreview() {
-    AlmatyPlacesTheme { ItemCard(places[0], false, {}, {}) }
+    AlmatyPlacesTheme { ItemCard(previewPlaces[0], false, {}, {}) }
 }
