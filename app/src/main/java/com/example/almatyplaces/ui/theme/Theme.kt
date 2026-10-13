@@ -4,9 +4,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-
+// 0xFF1565C0
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF1B6B4A), onPrimary = Color(0xFFFFFFFF),
+    primary = Color(0xFF1565C0), onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFA6F2C9), onPrimaryContainer = Color(0xFF002114),
     secondary = Color(0xFF4D6357), onSecondary = Color(0xFFFFFFFF),
     secondaryContainer = Color(0xFFCFE9D9), onSecondaryContainer = Color(0xFF0A1F16),
