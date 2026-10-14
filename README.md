@@ -18,7 +18,6 @@ Android-приложение на Jetpack Compose: каталог интерес
 
 Что изменилось по сравнению с эскизом:
 - Эскиз был сделан с помощью Claude и добавлен первым коммитом. Я проверил его и понял каждый блок.
-- (Напиши свои отличия, например: заголовок в приложении слева, а не по центру; кнопка «Назад к списку» внизу экрана деталей.)
 
 ## Что реализовано
 
@@ -106,20 +105,36 @@ flowchart TD
 В `MainActivity` в каждом методе жизненного цикла стоит `Log.d` (тег `LifecycleDemo`), в `PlacesViewModel` логи стоят в `init` и `onCleared`.
 
 Logcat после поворота экрана (фильтр `tag:LifecycleDemo`):
-
-<!-- ВАЖНО: замени блок ниже на свой настоящий вывод Logcat с эмулятора, потом удали этот комментарий -->
 ```
-Activity onCreate (savedInstanceState = null, первый запуск)
-ViewModel init (создан)
-Activity onStart
-Activity onResume
---- поворот экрана ---
-Activity onPause
-Activity onStop
-Activity onDestroy (isChangingConfigurations = true)
-Activity onCreate (savedInstanceState = не null, пересоздана)
-Activity onStart
-Activity onResume
+---------------------------- PROCESS STARTED (6576) for package com.example.almatyplaces ----------------------------
+2026-10-14 10:33:56.726  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onCreate (savedInstanceState = null, первый запуск)
+2026-10-14 10:33:56.769  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onStart
+2026-10-14 10:33:56.777  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onResume
+2026-10-14 10:33:57.038  6576-6576  LifecycleDemo           com.example.almatyplaces             D  ViewModel init (создан)
+2026-10-14 10:34:04.384  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onPause
+2026-10-14 10:34:04.410  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onStop
+2026-10-14 10:34:04.524  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onDestroy (isChangingConfigurations = true)
+2026-10-14 10:34:04.553  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onCreate (savedInstanceState = не null, пересоздана)
+2026-10-14 10:34:04.560  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onStart
+2026-10-14 10:34:04.561  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onResume
+2026-10-14 10:34:12.090  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onPause
+2026-10-14 10:34:12.099  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onStop
+2026-10-14 10:34:12.217  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onDestroy (isChangingConfigurations = true)
+2026-10-14 10:34:12.251  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onCreate (savedInstanceState = не null, пересоздана)
+2026-10-14 10:34:12.274  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onStart
+2026-10-14 10:34:12.282  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onResume
+2026-10-14 10:34:41.448  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onPause
+2026-10-14 10:34:41.455  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onStop
+2026-10-14 10:34:41.580  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onDestroy (isChangingConfigurations = true)
+2026-10-14 10:34:41.616  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onCreate (savedInstanceState = не null, пересоздана)
+2026-10-14 10:34:41.624  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onStart
+2026-10-14 10:34:41.625  6576-6576  LifecycleDemo           com.example.almatyplaces             D  Activity onResume
 ```
 
-Объяснение: при повороте экрана Android уничтожает Activity и создаёт новую, поэтому после `onDestroy` снова идёт `onCreate`. Но ViewModel хранится отдельно от Activity: система знает, что это поворот (`isChangingConfigurations = true`), и оставляет ViewModel в памяти. Поэтому в логе нет новых `ViewModel init` и `onCleared`, а новая Activity получает тот же `PlacesViewModel` с тем же состоянием. Именно поэтому текст поиска, выбранная категория и избранное не пропадают.
+
+Объяснение: при повороте экрана Android уничтожает Activity и создаёт новую,
+поэтому после `onDestroy` снова идёт `onCreate`. Но ViewModel хранится отдельно
+от Activity: система знает, что это поворот (`isChangingConfigurations = true`),
+и оставляет ViewModel в памяти. Поэтому в логе нет новых `ViewModel init` и `onCleared`,
+а новая Activity получает тот же `PlacesViewModel` с тем же состоянием. Именно поэтому
+текст поиска, выбранная категория и избранное не пропадают.
